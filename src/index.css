@@ -1,3 +1,46 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  font:
+    large/1.556 "Linux Libertine",
+    Palatino,
+    "Palatino Linotype",
+    "Book Antiqua",
+    Georgia,
+    "Times New Roman",
+    serif;
+  word-spacing: 0.1em;
+  margin: 0 auto;
+  padding-bottom: 2em;
+}
+
+mark {
+  display: inline-block;
+  background: #ff8;
+  border: 1px dotted #888;
+}
+pre,
+kbd,
+samp,
+code,
+var {
+  font:
+    medium Consolas,
+    "Andale Mono",
+    Monaco,
+    "Liberation Mono",
+    "Bitstream Vera Sans Mono",
+    "DejaVu Sans Mono",
+    monospace;
+  word-spacing: 0;
+  letter-spacing: 0;
+}
+pre {
+  display: block;
+  font-family: monospace;
+  unicode-bidi: isolate;
+  white-space: pre;
+  margin: 1rem 0px;
+}

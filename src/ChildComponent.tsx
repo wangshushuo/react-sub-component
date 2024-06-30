@@ -17,10 +17,15 @@ const ChildComponent = forwardRef((props, ref) => {
 
   return (
     <div className="m-4 flex flex-col items-center">
-      <h1>child component</h1>
+      <h1 className="mb-4">child component</h1>
       <label htmlFor="" className="flex items-center border">
         <span className="px-2 leading-none">input:</span>
-        <input ref={localRef} className="border-l" value={a} />
+        <input
+          ref={localRef}
+          className="border-l"
+          value={a}
+          onChange={() => {}}
+        />
       </label>
     </div>
   );
