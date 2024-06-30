@@ -81,8 +81,8 @@ function App() {
     <div className="">
       <ParentComponent />
       <div className="container mx-auto flex">
-        <CodeBlock codeString={code} highlightKeywords={highlightKeywords} />
-        <CodeBlock codeString={code1} highlightKeywords={highlightKeywords} />
+        <CodeBlock title={"Parent"} codeString={code} highlightKeywords={highlightKeywords} />
+        <CodeBlock title={"Child"} codeString={code1} highlightKeywords={highlightKeywords} />
       </div>
     </div>
   );

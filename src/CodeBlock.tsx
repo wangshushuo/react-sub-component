@@ -18,6 +18,7 @@ interface IProps {
   codeString: string;
   highlightKeywords?: { text: string; style: string }[];
   excludeKeywords?: string[];
+  title?: string;
 }
 
 interface IHighlight {
@@ -31,6 +32,7 @@ const CodeHighlighter = ({
   codeString,
   highlightKeywords = [],
   excludeKeywords = [],
+  title = "",
 }: IProps) => {
   const highlightCode = (code: string) => {
     const ast = acorn.Parser.extend(jsx()).parse(code, {
@@ -98,9 +100,12 @@ const CodeHighlighter = ({
   const highlightedCode = highlightCode(codeString);
 
   return (
-    <pre>
-      <code dangerouslySetInnerHTML={{ __html: highlightedCode }} />
-    </pre>
+    <div className="mt-6 flex-1">
+      {title && <h1 className={"text-center"}>{title}</h1>}
+      <pre className="pl-[45px] leading-none">
+        <code dangerouslySetInnerHTML={{ __html: highlightedCode.trim() }} />
+      </pre>
+    </div>
   );
 };
 
