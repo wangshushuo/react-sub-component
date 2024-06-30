@@ -1,77 +1,107 @@
-export interface IProps {
-  code: string;
-  highlights: Array<{ text: string; style: string }>;
-  title?: string;
-  exclusions?: string[];
+import * as acorn from "acorn";
+import jsx from "acorn-jsx";
+
+const escapeHtml = (unsafe: string) => {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;")
+    .replace(/\(/g, "&#40;")
+    .replace(/\)/g, "&#41;")
+    .replace(/\{/g, "&#123;")
+    .replace(/\}/g, "&#125;");
+};
+
+interface IProps {
+  codeString: string;
+  highlightKeywords?: { text: string; style: string }[];
+  excludeKeywords?: string[];
 }
 
-const CodeBlock = ({ code, highlights, title, exclusions }: IProps) => {
-  const escapeHtml = (str) => {
-    return str
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;")
-      .replace(/\(/g, "&#40;")
-      .replace(/\)/g, "&#41;")
-      .replace(/\{/g, "&#123;")
-      .replace(/\}/g, "&#125;");
-  };
+interface IHighlight {
+  start: number;
+  end: number;
+  name: string;
+  style: string;
+}
 
-  const isBoundary = (char) => {
-    return !char || /\s|[.,;(){}[\]]/.test(char);
-  };
+const CodeHighlighter = ({
+  codeString,
+  highlightKeywords = [],
+  excludeKeywords = [],
+}: IProps) => {
+  const highlightCode = (code: string) => {
+    const ast = acorn.Parser.extend(jsx()).parse(code, {
+      ecmaVersion: 2020,
+      sourceType: "module",
+      locations: true,
+    });
 
-  const highlightCode = (code) => {
-    const escapedCode = escapeHtml(code);
-    let result = "";
-    let i = 0;
+    const highlights: IHighlight[] = [];
 
-    while (i < escapedCode.length) {
-      let matched = false;
-
-      for (const { text, style } of highlights) {
-        const escapedText = escapeHtml(text);
-        const end = i + escapedText.length;
-
-        if (
-          escapedCode.substring(i, end) === escapedText &&
-          isBoundary(escapedCode[i - 1]) &&
-          isBoundary(escapedCode[end])
-        ) {
-          const context = escapedCode.substring(i - 20, end + 20); // Check larger context for exclusions
-          const isExcluded = exclusions.some((exclusion) => {
-            const escapedExclusion = escapeHtml(exclusion);
-            return context.includes(escapedExclusion);
+    const walk = (node: acorn.Program) => {
+      if (node.type === "Identifier") {
+        const keyword = highlightKeywords.find((kw) => kw.text === node.name);
+        if (keyword && !excludeKeywords.includes(node.name)) {
+          highlights.push({
+            start: node.start,
+            end: node.end,
+            name: node.name,
+            style: keyword.style,
           });
-
-          if (!isExcluded) {
-            result += `<mark style="${style}">${escapedText}</mark>`;
-            i = end;
-            matched = true;
-            break;
+        }
+      } else if (node.type === "JSXAttribute") {
+        const attrName = node.name.name;
+        const attrValue =
+          node.value && node.value.expression && node.value.expression.name;
+        if (attrValue) {
+          const text = `${attrName}={${attrValue}}`;
+          const keyword = highlightKeywords.find((kw) => kw.text === text);
+          if (keyword && !excludeKeywords.includes(text)) {
+            highlights.push({
+              start: node.start,
+              end: node.end,
+              name: text,
+              style: keyword.style,
+            });
           }
         }
       }
 
-      if (!matched) {
-        result += escapedCode[i];
-        i++;
+      for (const key in node) {
+        if (node[key] && typeof node[key] === "object") {
+          walk(node[key]);
+        }
       }
-    }
+    };
 
-    return result;
+    walk(ast);
+
+    let highlightedCode = "";
+    let lastIndex = 0;
+
+    highlights
+      .sort((a, b) => a.start - b.start)
+      .forEach(({ start, end, name, style }) => {
+        highlightedCode += escapeHtml(code.slice(lastIndex, start));
+        highlightedCode += `<mark style="${style}">${escapeHtml(name)}</mark>`;
+        lastIndex = end;
+      });
+
+    highlightedCode += escapeHtml(code.slice(lastIndex));
+
+    return highlightedCode;
   };
 
+  const highlightedCode = highlightCode(codeString);
+
   return (
-    <div className="flex-1">
-      {title && <h1>{title}</h1>}
-      <pre className="pl-[45px] leading-none">
-        <code dangerouslySetInnerHTML={{ __html: highlightCode(code) }} />
-      </pre>
-    </div>
+    <pre>
+      <code dangerouslySetInnerHTML={{ __html: highlightedCode }} />
+    </pre>
   );
 };
 
-export default CodeBlock;
+export default CodeHighlighter;

@@ -66,7 +66,7 @@ const ChildComponent = forwardRef((props, ref) => {
 });
 `;
 
-const highlights = [
+const highlightKeywords = [
   { text: "useImperativeHandle", style: "" },
   { text: "forwardRef", style: "" },
   { text: "ref={localRef}", style: "" },
@@ -81,16 +81,8 @@ function App() {
     <div className="">
       <ParentComponent />
       <div className="container mx-auto flex">
-        <CodeBlock
-          code={code}
-          highlights={highlights}
-          exclusions={exclusions}
-        />
-        <CodeBlock
-          code={code1}
-          highlights={highlights}
-          exclusions={exclusions}
-        />
+        <CodeBlock codeString={code} highlightKeywords={highlightKeywords} />
+        <CodeBlock codeString={code1} highlightKeywords={highlightKeywords} />
       </div>
     </div>
   );
